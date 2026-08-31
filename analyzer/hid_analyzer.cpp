@@ -453,14 +453,20 @@ void HidAnalyzer::hidRead (void)
     {
         return;
     }
-    unsigned char readBuff[64];
+    unsigned char readBuff[64] = {0};
     int read = hid_read(m_hidDevice, readBuff, 64);
     m_mutexRead.lock();
     if(read > 0)
     {
         if(readBuff[0] == ANTSCOPE_REPORT)
         {
-            for(int i = 0; i < readBuff[1]; i++)
+            // readBuff[1] is a payload length supplied by the device
+            // (0-255); clamp it to both the fixed-size buffer and to how
+            // many bytes hid_read() actually returned, so a device
+            // reporting more than 62 payload bytes - or a short read -
+            // cannot walk past the end of readBuff.
+            int len = qMin<int>(readBuff[1], qMax(0, read - 2));
+            for(int i = 0; i < len; i++)
             {
                 m_incomingBuffer.append(readBuff[i+2]);
             }
