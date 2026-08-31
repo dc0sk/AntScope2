@@ -59,7 +59,7 @@ void PopUp::init()
     connect(&animation, &QAbstractAnimation::finished, this, &PopUp::hide);
 
     label.setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    label.setStyleSheet("QLabel { color : " + m_textColor +
+    label.setStyleSheet("QLabel { color : " + m_textColor + ";"
                         "margin-top: 6px;"
                         "margin-bottom: 6px;"
                         "margin-left: 10px;"
