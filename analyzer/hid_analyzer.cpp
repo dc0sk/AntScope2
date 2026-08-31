@@ -2,6 +2,7 @@
 #include "customanalyzer.h"
 #include <QtConcurrent/QtConcurrentRun>
 #include <QThread>
+#include <QElapsedTimer>
 #include "analyzerpro.h"
 
 extern bool g_usbOnly;
@@ -706,9 +707,21 @@ bool HidAnalyzer::update (QIODevice *fw)
         QTimer::singleShot(5000, this, [this]() {
             this->preUpdate();
         });
-        while(1)//for(int i = 0; i < 565535; ++i)
+        // m_bootMode is only ever set by the device re-arrival path, which
+        // does not currently work (the feature this belongs to is
+        // incomplete and unreachable from the UI). Previously this was an
+        // unbounded while(1) with no way out but m_bootMode becoming true,
+        // so a call that could never detect the device coming back would
+        // spin forever instead of ever reaching the failure handling right
+        // below. Bound the wait so that path is actually reachable.
+        QElapsedTimer bootModeWait;
+        bootModeWait.start();
+        const qint64 bootModeTimeoutMs = 15000;
+        while(1)
         {
             if(m_bootMode)
+                break;
+            if(bootModeWait.hasExpired(bootModeTimeoutMs))
                 break;
             QCoreApplication::processEvents();
         }
