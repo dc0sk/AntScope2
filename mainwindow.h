@@ -201,6 +201,7 @@ private:
     bool m_addingMarker;
     bool m_isMouseClick;
     bool m_bInterrupted;
+    bool m_selectDeviceDialogOpen = false;
     QMap<QString, QStringList*> m_BandsMap;
     bool m_darkColorTheme = true;
     QPalette m_lightPalette;

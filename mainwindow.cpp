@@ -6822,6 +6822,15 @@ void MainWindow::on_selectDeviceDialog()
         return;
     }
 
+    // dlg.exec() below runs a nested event loop, during which any other
+    // queued call to this same slot (e.g. a pending QTimer::singleShot
+    // from on_refreshConnection()) would still fire and stack a second
+    // SelectDeviceDialog on top of the first. Guard against that.
+    if (m_selectDeviceDialogOpen) {
+        return;
+    }
+    m_selectDeviceDialogOpen = true;
+
     SelectDeviceDialog dlg(false, this);
     if (dlg.exec() == QDialog::Accepted) {
         SelectionParameters sel_par = SelectionParameters::selected;
@@ -6831,6 +6840,7 @@ void MainWindow::on_selectDeviceDialog()
             emit m_analyzer->analyzerFound(selected->index());
         }
     }
+    m_selectDeviceDialogOpen = false;
     closeSettingsDialog();
     ui->settingsBtn->setEnabled(true);
 }
