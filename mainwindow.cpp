@@ -538,6 +538,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_1secTimer, SIGNAL(timeout()), this, SLOT(on_1secTimerTick()));
     m_1secTimer->start(1000);
 
+    m_focusDebounceTimer = new QTimer(this);
+    m_focusDebounceTimer->setSingleShot(true);
+    connect(m_focusDebounceTimer, &QTimer::timeout, this, &MainWindow::onFocusDebounceTimeout);
+
     loadLanguage(languages_small[m_languageNumber]);
     ui->tableWidget_presets->horizontalHeader()->show();
     if(!m_isRange)
@@ -761,17 +765,29 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 bool MainWindow::event(QEvent * e)
 {
-    if(e->type() == QEvent::WindowActivate)
+    if(e->type() == QEvent::WindowActivate || e->type() == QEvent::WindowDeactivate)
     {
-        emit focus(true);
-    }else if (e->type() == QEvent::WindowDeactivate)
-    {
-        emit focus(false);
+        // Some window managers/compositors send rapid, sometimes
+        // continuous, Activate/Deactivate churn (e.g. triggered by an
+        // always-on-top Qt::Tool child being mapped/unmapped, which is
+        // itself a reaction to a previous Activate here - a feedback
+        // loop). Do not react to any single event; only act once the
+        // window's activation state has held steady for a while.
+        m_focusDebounceTimer->start(300);
     }else if (e->type() == QEvent::WindowStateChange)
     {
         updateGraph();
     }
     return QMainWindow::event(e) ;
+}
+
+void MainWindow::onFocusDebounceTimeout()
+{
+    bool active = isActiveWindow();
+    if (active != m_lastEmittedFocus) {
+        m_lastEmittedFocus = active;
+        emit focus(active);
+    }
 }
 
 void MainWindow::setWidgetsSettings()

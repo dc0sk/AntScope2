@@ -49,7 +49,8 @@ void PopUp::init()
 {
     setWindowFlags(Qt::FramelessWindowHint |
                    Qt::Tool |
-                   Qt::WindowStaysOnTopHint);
+                   Qt::WindowStaysOnTopHint |
+                   Qt::WindowDoesNotAcceptFocus);
     setAttribute(Qt::WA_TranslucentBackground);
     setAttribute(Qt::WA_ShowWithoutActivating);
 
@@ -185,12 +186,23 @@ void PopUp::show()
 
 void PopUp::focusShow()
 {
-    QWidget::show();
+    move(m_x, m_y);
+    if (!isVisible()) {
+        QWidget::show();
+    }
 }
 
 void PopUp::focusHide()
 {
-    QWidget::hide();
+    // Park off-screen instead of QWidget::hide(): unmapping this
+    // Qt::Tool top-level surface causes some Wayland compositors
+    // (observed on COSMIC/cosmic-comp) to send a spurious
+    // WindowActivate/WindowDeactivate event to the parent window. Since
+    // that event drives this same show/hide logic (via MainWindow::event
+    // -> focus() -> showHideHints()), unmapping creates a self-sustaining
+    // feedback loop ("flickering popups"). Moving off-screen is visually
+    // equivalent while keeping the surface continuously mapped.
+    move(-32000, -32000);
 }
 
 void PopUp::hideAnimation()

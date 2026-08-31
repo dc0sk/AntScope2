@@ -22,7 +22,8 @@ MarkersPopUp::MarkersPopUp(QWidget *parent) : QWidget(parent),
 {
       setWindowFlags(Qt::FramelessWindowHint |        // Отключаем оформление окна
                      Qt::Tool |                       // Отменяем показ в качестве отдельного окна
-                     Qt::WindowStaysOnTopHint);       // Устанавливаем поверх всех окон
+                     Qt::WindowStaysOnTopHint |       // Устанавливаем поверх всех окон
+                     Qt::WindowDoesNotAcceptFocus);   // Никогда не становится активным окном
       setAttribute(Qt::WA_TranslucentBackground);     // Указываем, что фон будет прозрачным
       setAttribute(Qt::WA_ShowWithoutActivating);     // При показе, виджет не получается фокуса автоматически
 
@@ -177,18 +178,22 @@ void MarkersPopUp::show()
 
 void MarkersPopUp::focusShow()
 {
-    //qDebug() << "MarkersPopUp::focusShow()" << m_menuVisible;
-    QWidget::show();
+    move(m_x, m_y);
+    if (!isVisible()) {
+        QWidget::show();
+    }
 }
 
 void MarkersPopUp::focusHide()
 {
-    //qDebug() << "MarkersPopUp::focusHide()" << m_menuVisible;
     if (m_menuVisible) {
         setVisible(true);
         return;
     }
-    QWidget::hide();
+    // Park off-screen instead of QWidget::hide(): see PopUp::focusHide()
+    // for why unmapping this Qt::Tool surface causes a feedback loop on
+    // some Wayland compositors.
+    move(-32000, -32000);
 }
 
 void MarkersPopUp::hideAnimation()

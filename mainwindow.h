@@ -160,6 +160,8 @@ private:
 
 //    QTimer *m_redrawTimer;
     QTimer *m_1secTimer;
+    QTimer *m_focusDebounceTimer;
+    bool m_lastEmittedFocus = true;
 
     double m_cableVelFactor;
     double m_cableResistance;
@@ -338,6 +340,7 @@ private slots:
     void on_firmwareAutoUpdateStateChanged( bool state);
     void on_antScopeAutoUpdateStateChanged( bool state);
     void on_1secTimerTick();
+    void onFocusDebounceTimeout();
     void on_calibrationChanged();
     void on_SaveFile(int row, QString path);
     void on_mouseDoubleClick(QMouseEvent* e);
