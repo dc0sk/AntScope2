@@ -536,7 +536,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_1secTimer = new QTimer(this);
     connect(m_1secTimer, SIGNAL(timeout()), this, SLOT(on_1secTimerTick()));
-    m_1secTimer->start(100);
+    m_1secTimer->start(1000);
 
     loadLanguage(languages_small[m_languageNumber]);
     ui->tableWidget_presets->horizontalHeader()->show();
