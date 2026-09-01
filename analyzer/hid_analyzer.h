@@ -104,6 +104,7 @@ private:
     bool disconnectHid(void);
     qint32 parse (QByteArray arr);
     bool waitAnswer();
+    bool waitForBootDevice(qint64 timeoutMs);
     QFuture<struct hid_device_info*> *m_futureRefresh;
     QFutureWatcher<struct hid_device_info*> *m_watcherRefresh;
 };
